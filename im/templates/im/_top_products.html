@@ -1,0 +1,26 @@
+<section class="page-section bg-light" id="about">
+    <div class="container">
+        <div class="text-center">
+            <h2 class="section-heading text-uppercase invisible">.</h2>
+            <h2 class="section-heading text-uppercase">{{ title }}. Лидеры продаж </h2>
+            <h3 class="section-subheading text-muted">Самые продаваемые товары в 2024 (по сумме)</h3>
+        </div>
+        <div class="row text-center">
+            {% for product in top_products %}
+                <div class="col-md-3">
+                    <div class="product-card">
+                    <a href="{% url 'im:product_detail_rus' product.product__id %}" class="fa-stack fa-4x">
+                        <!-- <img class="img-fluid" src="{{ country.image.url }}" alt="{{ country.title }}" width=140 /> -->
+                        <h6 class="my-3">{{ product.product__sku }}</h6>
+                        <h6 class="section-subheading text-muted my-3">{{ product.product__name_short }}</h6>
+                        <h6 class="section-subheading text-muted my-3">
+                            {% widthratio product.total_sales_volume 1000 1 %} тыс.руб.  
+                        </h6>
+                    </a>
+                    </div>
+                </div>
+            {% endfor %}            
+        </div>
+        <div class="text-center"><h2 class="section-heading text-uppercase invisible">.</h2></div>
+    </div>
+</section>   

@@ -26,7 +26,7 @@ class OracleAgent:
                 target_inventory[store] = max(
                     S[store] - inv_levels['nsk'] - inv_levels['kem'] + future_demand['nsk'] + future_demand['kem'], 0
                     )
-            actions[i] = self._get_correct_quantity(target_inventory[store])  
+            actions[i] = self._get_correct_quantity(target_inventory[store]) 
         if verbose:
             for store in self.stores:
                 print(f'{store}: S = {S[store]}, Inv = {inv_levels[store]}, FutDem = {future_demand[store]}')
@@ -52,7 +52,8 @@ class OracleAgent:
                 product=self.product, store=Store.objects.get(name=store_name)
                 ).first().sales_mean
             lead_time = Store.objects.get(name=store_name).lead_time_mean
-            future_demand[store] = round(sales_mean * lead_time)  
+            future_demand[store] = round(sales_mean * lead_time)
+
         return future_demand
     
     def _get_mean_demand(self) -> dict:
@@ -72,7 +73,7 @@ class OracleAgent:
     def _get_S(self) -> dict:
         mean_demand = self._get_mean_demand()
         S = {}
-        S['nsk'] = int((mean_demand['nsk'] + mean_demand['kem']) * (self.product.S_days + 3 )  )  #### <-- changed
+        S['nsk'] = int((mean_demand['nsk'] + mean_demand['kem']) * (self.product.S_days + 10 )  )  #### <-- changed
         S['kem'] = int(mean_demand['kem'] * (self.product.S_days - 10))
         return S
 

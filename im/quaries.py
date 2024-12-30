@@ -5,20 +5,102 @@ from .models import Sale, Inventory, WorkingDays, Product
 
 def get_top_products_by_sales(n_top=10):
     start_date = date(2024, 1, 1)
-    end_date   = date(2024, 11, 30)
+    end_date   = date(2024, 12, 31)
     top_products = (
         Sale.objects.filter(sale_date__range=(start_date, end_date))
-        #Sale.objects.filter(sale_date__year=year, sale_date__month=month)
-        .values('product__id', 'product__sku')
+        .values('product__id', 'product__sku', 'product__name_short')
         .annotate(
             #total_sales_volume=Sum(F('quantity') * F('product__volume'))  # Multiply quantity by product volume
             total_sales_volume=Sum('sale_value')  # Multiply quantity by product volume
         )
         .order_by('-total_sales_volume')[:n_top]  # Order by total sales volume
-        # to extract only a list of SKUs
-        #.values_list('product__sku', flat=True)  # Extract only the SKU values
     )
     return top_products
+
+def get_top_products_by_sales_manufacturer(manufacturer: str, n_top=10):
+    start_date = date(2024, 1, 1)
+    end_date   = date(2024, 12, 31)
+    top_products = (
+        Sale.objects.filter(sale_date__range=(start_date, end_date), product__manufacturer=manufacturer)
+        .values('product__id', 'product__sku', 'product__name_short')
+        .annotate(
+            #total_sales_volume=Sum(F('quantity') * F('product__volume'))  # Multiply quantity by product volume
+            total_sales_volume=Sum('sale_value')  # Multiply quantity by product volume
+        )
+        .order_by('-total_sales_volume')[:n_top]  # Order by total sales volume
+    )
+    return top_products
+
+def get_top_products_by_sales_category(category: str, n_top=10):
+    start_date = date(2024, 1, 1)
+    end_date   = date(2024, 12, 31)
+    top_products = (
+        Sale.objects.filter(sale_date__range=(start_date, end_date), product__category=category)
+        .values('product__id', 'product__sku', 'product__name_short')
+        .annotate(
+            #total_sales_volume=Sum(F('quantity') * F('product__volume'))  # Multiply quantity by product volume
+            total_sales_volume=Sum('sale_value')  # Multiply quantity by product volume
+        )
+        .order_by('-total_sales_volume')[:n_top]  # Order by total sales volume
+    )
+    return top_products
+
+def get_top_products_by_sales_subcategory(subcategory: str, n_top=10):
+    start_date = date(2024, 1, 1)
+    end_date   = date(2024, 12, 31)
+    top_products = (
+        Sale.objects.filter(sale_date__range=(start_date, end_date), product__subcategory=subcategory)
+        .values('product__id', 'product__sku', 'product__name_short')
+        .annotate(
+            #total_sales_volume=Sum(F('quantity') * F('product__volume'))  # Multiply quantity by product volume
+            total_sales_volume=Sum('sale_value')  # Multiply quantity by product volume
+        )
+        .order_by('-total_sales_volume')[:n_top]  # Order by total sales volume
+    )
+    return top_products
+
+def get_top_products_by_sales_region(region: str, n_top=10):
+    start_date = date(2024, 1, 1)
+    end_date   = date(2024, 12, 31)
+    top_products = (
+        Sale.objects.filter(sale_date__range=(start_date, end_date), region=region)
+        .values('product__id', 'product__sku', 'product__name_short')
+        .annotate(
+            #total_sales_volume=Sum(F('quantity') * F('product__volume'))  # Multiply quantity by product volume
+            total_sales_volume=Sum('sale_value')  # Multiply quantity by product volume
+        )
+        .order_by('-total_sales_volume')[:n_top]  # Order by total sales volume
+    )
+    return top_products
+
+def get_top_products_by_sales_client(client_type: str, n_top=10):
+    start_date = date(2024, 1, 1)
+    end_date   = date(2024, 12, 31)
+    top_products = (
+        Sale.objects.filter(sale_date__range=(start_date, end_date), client_type=client_type)
+        .values('product__id', 'product__sku', 'product__name_short')
+        .annotate(
+            #total_sales_volume=Sum(F('quantity') * F('product__volume'))  # Multiply quantity by product volume
+            total_sales_volume=Sum('sale_value')  # Multiply quantity by product volume
+        )
+        .order_by('-total_sales_volume')[:n_top]  # Order by total sales volume
+    )
+    return top_products
+
+def get_top_products_by_sales_manager(manager: str, n_top=10):
+    start_date = date(2024, 1, 1)
+    end_date   = date(2024, 12, 31)
+    top_products = (
+        Sale.objects.filter(sale_date__range=(start_date, end_date), manager=manager)
+        .values('product__id', 'product__sku', 'product__name_short')
+        .annotate(
+            #total_sales_volume=Sum(F('quantity') * F('product__volume'))  # Multiply quantity by product volume
+            total_sales_volume=Sum('sale_value')  # Multiply quantity by product volume
+        )
+        .order_by('-total_sales_volume')[:n_top]  # Order by total sales volume
+    )
+    return top_products
+
 
 def get_product_sales(product, year, month=0):
     if month != 0:
@@ -68,9 +150,6 @@ def get_product_sales(product, year, month=0):
     # Return results as a tuple
     return total_sales, total_sales_nsk, total_sales_kem
 
-from django.db.models import Sum, F
-from collections import defaultdict
-
 def get_sales_all_months(year):
     """
     Optimized function to calculate total sales across all months for all stores,
@@ -99,6 +178,294 @@ def get_sales_all_months(year):
         sales_quantity = sale['total_sales_quantity'] or 0
         weight = product_weights.get(product_id, 0)
         
+        weighted_sales = sales_quantity * weight
+        
+        # Add to total sales for the month
+        total_sales['sales'][month] += weighted_sales
+        if location == 'novosibirsk':
+            total_sales_nsk['sales'][month] += weighted_sales
+        elif location == 'kemerovo':
+            total_sales_kem['sales'][month] += weighted_sales
+    
+    for i in range(1, 13):
+        wd_in_month = len(WorkingDays.objects.filter(date__month=i, date__year=year))
+        total_sales['av_sales'][i-1] = total_sales['sales'][i-1] / wd_in_month
+        total_sales_nsk['av_sales'][i-1] = total_sales_nsk['sales'][i-1] / wd_in_month
+        total_sales_kem['av_sales'][i-1] = total_sales_kem['sales'][i-1] / wd_in_month
+
+    return total_sales, total_sales_nsk, total_sales_kem
+
+def get_sales_all_months_by_manufacturer(year: int, manufacturer: str):
+    """
+    Optimized function to calculate total sales across all months for all stores,
+    Novosibirsk stores, and Kemerovo stores.
+    """
+    # Pre-fetch product weights into a dictionary for quick lookup
+    product_weights = {product.id: product.weight for product in Product.objects.all()}
+
+
+    
+    # Fetch sales data grouped by month, product, and location
+    sales_data = (
+        Sale.objects.filter(sale_date__year=year, product__manufacturer=manufacturer)
+        .values('sale_date__month', 'product', 'store__location')
+        .annotate(total_sales_quantity=Sum('quantity'))
+    )
+    
+    # Initialize monthly sales lists
+    total_sales     = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    total_sales_nsk = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    total_sales_kem = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    
+    # Process the aggregated sales data
+    for sale in sales_data:        
+        month = sale['sale_date__month'] - 1  # Convert month to zero-indexed
+        product_id = sale['product']
+        location = sale['store__location']
+        sales_quantity = sale['total_sales_quantity'] or 0
+        
+        if manufacturer != "sct":
+            weight = product_weights.get(product_id, 0) 
+            weighted_sales = sales_quantity * weight
+        else:
+            weighted_sales = sales_quantity
+        
+        # Add to total sales for the month
+        total_sales['sales'][month] += weighted_sales
+        if location == 'novosibirsk':
+            total_sales_nsk['sales'][month] += weighted_sales
+        elif location == 'kemerovo':
+            total_sales_kem['sales'][month] += weighted_sales
+    
+    for i in range(1, 13):
+        wd_in_month = len(WorkingDays.objects.filter(date__month=i, date__year=year))
+        total_sales['av_sales'][i-1] = total_sales['sales'][i-1] / wd_in_month
+        total_sales_nsk['av_sales'][i-1] = total_sales_nsk['sales'][i-1] / wd_in_month
+        total_sales_kem['av_sales'][i-1] = total_sales_kem['sales'][i-1] / wd_in_month
+
+    return total_sales, total_sales_nsk, total_sales_kem
+
+def get_sales_all_months_by_category(year: int, category: str):
+    """
+    Optimized function to calculate total sales across all months for all stores,
+    Novosibirsk stores, and Kemerovo stores.
+    """
+    # Pre-fetch product weights into a dictionary for quick lookup
+    product_weights = {product.id: product.weight for product in Product.objects.all()}
+
+
+    
+    # Fetch sales data grouped by month, product, and location
+    sales_data = (
+        Sale.objects.filter(sale_date__year=year, product__category=category)
+        .values('sale_date__month', 'product', 'store__location')
+        .annotate(total_sales_quantity=Sum('quantity'))
+    )
+    
+    # Initialize monthly sales lists
+    total_sales     = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    total_sales_nsk = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    total_sales_kem = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    
+    # Process the aggregated sales data
+    for sale in sales_data:        
+        month = sale['sale_date__month'] - 1  # Convert month to zero-indexed
+        product_id = sale['product']
+        location = sale['store__location']
+        sales_quantity = sale['total_sales_quantity'] or 0
+        
+        if category in ['масла', 'химия', 'автожидкости']:
+            weight = product_weights.get(product_id, 0) 
+            weighted_sales = sales_quantity * weight
+        else:
+            weighted_sales = sales_quantity
+        
+        # Add to total sales for the month
+        total_sales['sales'][month] += weighted_sales
+        if location == 'novosibirsk':
+            total_sales_nsk['sales'][month] += weighted_sales
+        elif location == 'kemerovo':
+            total_sales_kem['sales'][month] += weighted_sales
+    
+    for i in range(1, 13):
+        wd_in_month = len(WorkingDays.objects.filter(date__month=i, date__year=year))
+        total_sales['av_sales'][i-1] = total_sales['sales'][i-1] / wd_in_month
+        total_sales_nsk['av_sales'][i-1] = total_sales_nsk['sales'][i-1] / wd_in_month
+        total_sales_kem['av_sales'][i-1] = total_sales_kem['sales'][i-1] / wd_in_month
+
+    return total_sales, total_sales_nsk, total_sales_kem
+
+def get_sales_all_months_by_subcategory(year: int, subcategory: str):
+    """
+    Optimized function to calculate total sales across all months for all stores,
+    Novosibirsk stores, and Kemerovo stores.
+    """
+    # Pre-fetch product weights into a dictionary for quick lookup
+    product_weights = {product.id: product.weight for product in Product.objects.all()}
+
+
+    
+    # Fetch sales data grouped by month, product, and location
+    sales_data = (
+        Sale.objects.filter(sale_date__year=year, product__subcategory=subcategory)
+        .values('sale_date__month', 'product', 'store__location')
+        .annotate(total_sales_quantity=Sum('quantity'))
+    )
+    
+    # Initialize monthly sales lists
+    total_sales     = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    total_sales_nsk = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    total_sales_kem = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    
+    # Process the aggregated sales data
+    for sale in sales_data:        
+        month = sale['sale_date__month'] - 1  # Convert month to zero-indexed
+        product_id = sale['product']
+        location = sale['store__location']
+        sales_quantity = sale['total_sales_quantity'] or 0
+        
+        if subcategory not in [
+            'лампы', 'фильтры воздушные', 'фильтры для АКП', 'фильтры масляные', 
+            'фильтры салонные', 'фильтры топливные', 'щётки',
+            ]:
+            weight = product_weights.get(product_id, 0) 
+            weighted_sales = sales_quantity * weight
+        else:
+            weighted_sales = sales_quantity
+        
+        # Add to total sales for the month
+        total_sales['sales'][month] += weighted_sales
+        if location == 'novosibirsk':
+            total_sales_nsk['sales'][month] += weighted_sales
+        elif location == 'kemerovo':
+            total_sales_kem['sales'][month] += weighted_sales
+    
+    for i in range(1, 13):
+        wd_in_month = len(WorkingDays.objects.filter(date__month=i, date__year=year))
+        total_sales['av_sales'][i-1] = total_sales['sales'][i-1] / wd_in_month
+        total_sales_nsk['av_sales'][i-1] = total_sales_nsk['sales'][i-1] / wd_in_month
+        total_sales_kem['av_sales'][i-1] = total_sales_kem['sales'][i-1] / wd_in_month
+
+    return total_sales, total_sales_nsk, total_sales_kem
+
+def get_sales_all_months_by_region(year: int, region: str):
+    """
+    Optimized function to calculate total sales across all months for all stores,
+    Novosibirsk stores, and Kemerovo stores.
+    """
+    # Pre-fetch product weights into a dictionary for quick lookup
+    product_weights = {product.id: product.weight for product in Product.objects.all()}
+
+    # Fetch sales data grouped by month, product, and location
+    sales_data = (
+        Sale.objects.filter(sale_date__year=year, region=region)
+        .values('sale_date__month', 'product', 'store__location')
+        .annotate(total_sales_quantity=Sum('quantity'))
+    )
+    
+    # Initialize monthly sales lists
+    total_sales     = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    total_sales_nsk = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    total_sales_kem = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    
+    # Process the aggregated sales data
+    for sale in sales_data:        
+        month = sale['sale_date__month'] - 1  # Convert month to zero-indexed
+        product_id = sale['product']
+        location = sale['store__location']
+        sales_quantity = sale['total_sales_quantity'] or 0
+        
+        weight = product_weights.get(product_id, 0) 
+        weighted_sales = sales_quantity * weight
+        
+        # Add to total sales for the month
+        total_sales['sales'][month] += weighted_sales
+        if location == 'novosibirsk':
+            total_sales_nsk['sales'][month] += weighted_sales
+        elif location == 'kemerovo':
+            total_sales_kem['sales'][month] += weighted_sales
+    
+    for i in range(1, 13):
+        wd_in_month = len(WorkingDays.objects.filter(date__month=i, date__year=year))
+        total_sales['av_sales'][i-1] = total_sales['sales'][i-1] / wd_in_month
+        total_sales_nsk['av_sales'][i-1] = total_sales_nsk['sales'][i-1] / wd_in_month
+        total_sales_kem['av_sales'][i-1] = total_sales_kem['sales'][i-1] / wd_in_month
+
+    return total_sales, total_sales_nsk, total_sales_kem
+
+def get_sales_all_months_by_client(year: int, client_type: str):
+    """
+    Optimized function to calculate total sales across all months for all stores,
+    Novosibirsk stores, and Kemerovo stores.
+    """
+    # Pre-fetch product weights into a dictionary for quick lookup
+    product_weights = {product.id: product.weight for product in Product.objects.all()}
+
+    # Fetch sales data grouped by month, product, and location
+    sales_data = (
+        Sale.objects.filter(sale_date__year=year, client_type=client_type)
+        .values('sale_date__month', 'product', 'store__location')
+        .annotate(total_sales_quantity=Sum('quantity'))
+    )
+    
+    # Initialize monthly sales lists
+    total_sales     = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    total_sales_nsk = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    total_sales_kem = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    
+    # Process the aggregated sales data
+    for sale in sales_data:        
+        month = sale['sale_date__month'] - 1  # Convert month to zero-indexed
+        product_id = sale['product']
+        location = sale['store__location']
+        sales_quantity = sale['total_sales_quantity'] or 0
+        
+        weight = product_weights.get(product_id, 0) 
+        weighted_sales = sales_quantity * weight
+        
+        # Add to total sales for the month
+        total_sales['sales'][month] += weighted_sales
+        if location == 'novosibirsk':
+            total_sales_nsk['sales'][month] += weighted_sales
+        elif location == 'kemerovo':
+            total_sales_kem['sales'][month] += weighted_sales
+    
+    for i in range(1, 13):
+        wd_in_month = len(WorkingDays.objects.filter(date__month=i, date__year=year))
+        total_sales['av_sales'][i-1] = total_sales['sales'][i-1] / wd_in_month
+        total_sales_nsk['av_sales'][i-1] = total_sales_nsk['sales'][i-1] / wd_in_month
+        total_sales_kem['av_sales'][i-1] = total_sales_kem['sales'][i-1] / wd_in_month
+
+    return total_sales, total_sales_nsk, total_sales_kem
+
+def get_sales_all_months_by_manager(year: int, manager: str):
+    """
+    Optimized function to calculate total sales across all months for all stores,
+    Novosibirsk stores, and Kemerovo stores.
+    """
+    # Pre-fetch product weights into a dictionary for quick lookup
+    product_weights = {product.id: product.weight for product in Product.objects.all()}
+
+    # Fetch sales data grouped by month, product, and location
+    sales_data = (
+        Sale.objects.filter(sale_date__year=year, manager=manager)
+        .values('sale_date__month', 'product', 'store__location')
+        .annotate(total_sales_quantity=Sum('quantity'))
+    )
+    
+    # Initialize monthly sales lists
+    total_sales     = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    total_sales_nsk = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    total_sales_kem = {'sales': [0] * 12, 'av_sales': [0] * 12 }
+    
+    # Process the aggregated sales data
+    for sale in sales_data:        
+        month = sale['sale_date__month'] - 1  # Convert month to zero-indexed
+        product_id = sale['product']
+        location = sale['store__location']
+        sales_quantity = sale['total_sales_quantity'] or 0
+        
+        weight = product_weights.get(product_id, 0) 
         weighted_sales = sales_quantity * weight
         
         # Add to total sales for the month
@@ -318,6 +685,180 @@ def get_weighted_av_inventory_all_months_all_products(year: int) -> tuple:
         # Fetch inventory records for all relevant stores
         inventory_records = Inventory.objects.filter(
             date__year=year, date__month=month
+        ).values("store__name", "date").annotate(avg_inventory=Sum("inventory_level"))
+
+        # Group inventory records by store
+        inventory_map = defaultdict(dict)
+        for record in inventory_records:
+            inventory_map[record["store__name"]][record["date"]] = record["avg_inventory"]
+
+        # Stores to process
+        stores = {
+            "Novosibirsk Main": {"total": 0, "current_level": 0},
+            "Novosibirsk Reserve": {"total": 0, "current_level": 0},
+            "Kemerovo Main": {"total": 0, "current_level": 0},
+        }
+
+        total_days = len(working_days)
+
+        # Process inventory for each working day
+        for day in working_days:
+            for store_name, store_data in stores.items():
+                if day in inventory_map[store_name]:
+                    store_data["current_level"] = inventory_map[store_name][day]
+                store_data["total"] += store_data["current_level"]
+
+        # Calculate weighted averages for each store
+        weighted_nsk_main = stores["Novosibirsk Main"]["total"] / total_days if total_days > 0 else 0
+        weighted_nsk_reserve = stores["Novosibirsk Reserve"]["total"] / total_days if total_days > 0 else 0
+        weighted_kem = stores["Kemerovo Main"]["total"] / total_days if total_days > 0 else 0
+
+        # Append results
+        av_inv_list_nsk.append(weighted_nsk_main + weighted_nsk_reserve)
+        av_inv_list_kem.append(weighted_kem)
+        av_inv_list.append(weighted_nsk_main + weighted_nsk_reserve + weighted_kem)
+
+    return av_inv_list, av_inv_list_nsk, av_inv_list_kem
+
+def get_weighted_av_inventory_all_months_all_products_by_manufacturer(year: int, manufacturer: str) -> tuple:
+    """
+    Returns lists of weighted average inventory (total, Novosibirsk, and Kemerovo) 
+    for all products for a given year based on working days and inventory levels.
+    """
+    from collections import defaultdict
+
+    av_inv_list = []  # Total weighted average inventory
+    av_inv_list_nsk = []  # Novosibirsk (Main + Reserve) weighted average inventory
+    av_inv_list_kem = []  # Kemerovo weighted average inventory
+
+    # Loop through each month
+    for month in range(1, 13):
+        # Get all working days for the month
+        working_days = list(
+            WorkingDays.objects.filter(date__year=year, date__month=month)
+            .order_by("date")
+            .values_list("date", flat=True)
+        )
+
+        # Fetch inventory records for all relevant stores
+        inventory_records = Inventory.objects.filter(
+            date__year=year, date__month=month, product__manufacturer=manufacturer
+        ).values("store__name", "date").annotate(avg_inventory=Sum("inventory_level"))
+
+        # Group inventory records by store
+        inventory_map = defaultdict(dict)
+        for record in inventory_records:
+            inventory_map[record["store__name"]][record["date"]] = record["avg_inventory"]
+
+        # Stores to process
+        stores = {
+            "Novosibirsk Main": {"total": 0, "current_level": 0},
+            "Novosibirsk Reserve": {"total": 0, "current_level": 0},
+            "Kemerovo Main": {"total": 0, "current_level": 0},
+        }
+
+        total_days = len(working_days)
+
+        # Process inventory for each working day
+        for day in working_days:
+            for store_name, store_data in stores.items():
+                if day in inventory_map[store_name]:
+                    store_data["current_level"] = inventory_map[store_name][day]
+                store_data["total"] += store_data["current_level"]
+
+        # Calculate weighted averages for each store
+        weighted_nsk_main = stores["Novosibirsk Main"]["total"] / total_days if total_days > 0 else 0
+        weighted_nsk_reserve = stores["Novosibirsk Reserve"]["total"] / total_days if total_days > 0 else 0
+        weighted_kem = stores["Kemerovo Main"]["total"] / total_days if total_days > 0 else 0
+
+        # Append results
+        av_inv_list_nsk.append(weighted_nsk_main + weighted_nsk_reserve)
+        av_inv_list_kem.append(weighted_kem)
+        av_inv_list.append(weighted_nsk_main + weighted_nsk_reserve + weighted_kem)
+
+    return av_inv_list, av_inv_list_nsk, av_inv_list_kem
+
+def get_weighted_av_inventory_all_months_all_products_by_category(year: int, category: str) -> tuple:
+    """
+    Returns lists of weighted average inventory (total, Novosibirsk, and Kemerovo) 
+    for all products for a given year based on working days and inventory levels.
+    """
+    from collections import defaultdict
+
+    av_inv_list = []  # Total weighted average inventory
+    av_inv_list_nsk = []  # Novosibirsk (Main + Reserve) weighted average inventory
+    av_inv_list_kem = []  # Kemerovo weighted average inventory
+
+    # Loop through each month
+    for month in range(1, 13):
+        # Get all working days for the month
+        working_days = list(
+            WorkingDays.objects.filter(date__year=year, date__month=month)
+            .order_by("date")
+            .values_list("date", flat=True)
+        )
+
+        # Fetch inventory records for all relevant stores
+        inventory_records = Inventory.objects.filter(
+            date__year=year, date__month=month, product__category=category
+        ).values("store__name", "date").annotate(avg_inventory=Sum("inventory_level"))
+
+        # Group inventory records by store
+        inventory_map = defaultdict(dict)
+        for record in inventory_records:
+            inventory_map[record["store__name"]][record["date"]] = record["avg_inventory"]
+
+        # Stores to process
+        stores = {
+            "Novosibirsk Main": {"total": 0, "current_level": 0},
+            "Novosibirsk Reserve": {"total": 0, "current_level": 0},
+            "Kemerovo Main": {"total": 0, "current_level": 0},
+        }
+
+        total_days = len(working_days)
+
+        # Process inventory for each working day
+        for day in working_days:
+            for store_name, store_data in stores.items():
+                if day in inventory_map[store_name]:
+                    store_data["current_level"] = inventory_map[store_name][day]
+                store_data["total"] += store_data["current_level"]
+
+        # Calculate weighted averages for each store
+        weighted_nsk_main = stores["Novosibirsk Main"]["total"] / total_days if total_days > 0 else 0
+        weighted_nsk_reserve = stores["Novosibirsk Reserve"]["total"] / total_days if total_days > 0 else 0
+        weighted_kem = stores["Kemerovo Main"]["total"] / total_days if total_days > 0 else 0
+
+        # Append results
+        av_inv_list_nsk.append(weighted_nsk_main + weighted_nsk_reserve)
+        av_inv_list_kem.append(weighted_kem)
+        av_inv_list.append(weighted_nsk_main + weighted_nsk_reserve + weighted_kem)
+
+    return av_inv_list, av_inv_list_nsk, av_inv_list_kem
+
+def get_weighted_av_inventory_all_months_all_products_by_subcategory(year: int, subcategory: str) -> tuple:
+    """
+    Returns lists of weighted average inventory (total, Novosibirsk, and Kemerovo) 
+    for all products for a given year based on working days and inventory levels.
+    """
+    from collections import defaultdict
+
+    av_inv_list = []  # Total weighted average inventory
+    av_inv_list_nsk = []  # Novosibirsk (Main + Reserve) weighted average inventory
+    av_inv_list_kem = []  # Kemerovo weighted average inventory
+
+    # Loop through each month
+    for month in range(1, 13):
+        # Get all working days for the month
+        working_days = list(
+            WorkingDays.objects.filter(date__year=year, date__month=month)
+            .order_by("date")
+            .values_list("date", flat=True)
+        )
+
+        # Fetch inventory records for all relevant stores
+        inventory_records = Inventory.objects.filter(
+            date__year=year, date__month=month, product__subcategory=subcategory
         ).values("store__name", "date").annotate(avg_inventory=Sum("inventory_level"))
 
         # Group inventory records by store

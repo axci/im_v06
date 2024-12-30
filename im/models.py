@@ -25,8 +25,11 @@ class Store(models.Model):
 class Product(models.Model):
     sku = models.CharField(max_length=100, unique=True, db_index=True)
     name = models.CharField(max_length=200)
+    name_short = models.CharField(max_length=50, blank=True, null=True)
+
     manufacturer = models.CharField(max_length=50, default="")
     category = models.CharField(max_length=50, default="")
+    subcategory = models.CharField(max_length=50, default="")
     weight = models.FloatField(help_text="Weight of the product in kg")
     volume = models.FloatField(help_text="Volume of the product in cubic units")
     order_pack = models.PositiveIntegerField(blank=False, default=1)
@@ -93,7 +96,8 @@ class Sale(models.Model):
     client_type = models.CharField(max_length=50, blank=True, null=True)
     category    = models.CharField(max_length=50, blank=True, null=True)
     manager     = models.CharField(max_length=50, blank=True, null=True)
-    region      = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
+    region      = models.CharField(max_length=50, blank=True, null=True)
+    #region      = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
     quantity    = models.IntegerField(help_text="Quantity of the product sold")
     cost        = models.FloatField(null=True, blank=True)
     sale_value  = models.FloatField(null=True, blank=True)

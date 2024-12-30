@@ -1,0 +1,21 @@
+{% load static %}
+<!-- Navigation-->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'im:homepage_rus' %}">Главная</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+            Меню
+            <i class="fas fa-bars ms-1"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">               
+                <li class="nav-item "><a class="nav-link" href="{% url 'im:sales_region_rus' region='кемерово' %}">Кемерово</a></li>
+                <li class="nav-item "><a class="nav-link" href="{% url 'im:sales_region_rus' region='новосибирск' %}">Новосибирск</a></li>
+                <li class="nav-item "><a class="nav-link" href="{% url 'im:sales_region_rus' region='алтай' %}">Алтай</a></li>
+                <li class="nav-item "><a class="nav-link" href="{% url 'im:sales_region_rus' region='красноярск' %}">Красноярск</a></li>
+                <li class="nav-item "><a class="nav-link" href="{% url 'im:sales_region_rus' region='томск' %}">Томск</a></li>
+                <li class="nav-item "><a class="nav-link" href="{% url 'im:sales_region_rus' region='новокузнецк' %}">Новокузнецк</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>

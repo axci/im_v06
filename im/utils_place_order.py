@@ -24,9 +24,9 @@ def place_order(selected_months):
 
     # Calculate Average day sales
     start_date = "2024-11-01"
-    end_date   = "2024-12-13"
-    #calculate_sales_statistics(start_date, end_date)
-    #calculate_sales_global_statistics(start_date, end_date)
+    end_date   = "2024-12-16"
+    statistics = calculate_sales_statistics(start_date, end_date)  # statistics[product.sku][store.name]['sales_mean'] = mean_sales
+    calculate_sales_global_statistics(start_date, end_date)
 
     # Ensure output directory exists
     output_dir = "orders_excel"
@@ -49,8 +49,8 @@ def place_order(selected_months):
         'inv_level_nsk': [],
         'inv_level_kem': [],
         # 'av_sales': [],
-        # 'av_sales_nsk': [],
-        # 'av_sales_kem': [],
+        'av_sales_nsk': [],
+        'av_sales_kem': [],
     }
 
     # Add dynamic columns for selected months
@@ -68,10 +68,10 @@ def place_order(selected_months):
         for year, month in selected_months
     }
 
-    q =  get_top_products_by_sales(221)
-    skus = q.values_list('product__sku', flat=True)
-    mannol_products = Product.objects.filter(sku__in=skus)
-    for product in mannol_products: # Product.objects.all()
+    # q =  get_top_products_by_sales(221)
+    # skus = q.values_list('product__sku', flat=True)
+    # mannol_products = Product.objects.filter(sku__in=skus)
+    for product in Product.objects.all():
         agent = OracleAgent(product)
         actions = agent.get_actions()
 
@@ -95,6 +95,10 @@ def place_order(selected_months):
         order['inv_level_nsk'].append(nsk_inv)
         order['inv_level_kem'].append(kem_inv)
         order['inv_level'].append(nsk_inv + kem_inv)
+
+        # Average sales
+        order['av_sales_nsk'].append(statistics[product.sku]['Novosibirsk Main']['sales_mean'])
+        order['av_sales_kem'].append(statistics[product.sku]['Kemerovo Main']['sales_mean'])
 
         # Monthly sales
         for (year, month), sales_data in sales_data_by_month.items():

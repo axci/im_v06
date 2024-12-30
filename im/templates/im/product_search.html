@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Search</title>
+</head>
+<body>
+    <h1>Поиск продукта</h1>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% else %}
+        <p>Введите SKU для поиска.</p>
+    {% endif %}
+    <form method="get" action="">
+        <label for="sku">SKU:</label>
+        <input type="text" id="sku" name="sku" placeholder="Enter SKU">
+        <button type="submit">Найти</button>
+    </form>
+</body>
+</html>

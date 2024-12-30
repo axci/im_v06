@@ -1,14 +1,18 @@
 import pandas as pd
-import re
 
 
 def make_flat_table(data):
     data = data.dropna(axis=1, how="all")
     data = data.drop(index=data.index[:3])
     data.index = range(len(data.index)) # После удаления строк удаляются и индексы, поэтому сбивается нумерация, исправляем
-    data.columns = ['name', 'art', 'sale_date', 'client_type', 'quantity', 'sale_value', 'cost']
+    data.columns = ['name', 'art', 'sale_date', 'region', 'client_type', 'manager', 'client', 'quantity', 'sale_value', 'cost']
     data['art'] = data['art'].apply(lambda x: str(x) if pd.notnull(x) else x)  # convert all sku to str
-    stores = ["Склад Новосибирск", "Оптовый Кемерово", "Склад Новосибирск Брак", "Брак Кемерово", "Оптовый"]
+    stores = [
+        "Склад Новосибирск", "Оптовый Кемерово", "Склад Новосибирск Брак", "Брак Кемерово", 
+        "Оптовый", "Выставочный Кемерово", "Выставочный Новосибирск", "Склад Новосибирск Транзит",
+        "Склад Новосибирск (АМС)", "Оптовый Кемерово (АМС)", "Склад Новосибирск Брак (АМС)", "Брак Кемерово (АМС)", 
+        "Оптовый (АМС)", "Выставочный Кемерово (АМС)", "Выставочный Новосибирск (АМС)", "Склад Новосибирск Транзит (АМС)",
+        ]
     skus = list(data.art.dropna().unique())
 
     data['store'] = ""
@@ -30,10 +34,10 @@ def make_flat_table(data):
             if item != 0:
                 data.loc[item, "SKU"] = data.loc[item - 1, "SKU"]
 
-    data = data[['sale_date', 'quantity', 'store', 'SKU', 'cost', 'sale_value', 'client_type']]
+    data = data[['sale_date', 'quantity', 'store', 'SKU', 'cost', 'sale_value', 'client_type', 'region', 'manager']]
     data['cost'] = data['cost'].fillna(0) 
     data['sale_value'] = data['sale_value'].fillna(0) 
-    data = data.dropna()
+    data = data.dropna(subset=['client_type'])
     data["sale_date"] = pd.to_datetime(data['sale_date'], errors='coerce', format='%d.%m.%Y  %H:%M:%S').dt.date
     data.index = range(len(data.index)) # После удаления строк удаляются и индексы, поэтому сбивается нумерация, исправляем
     data = data.replace('Оптовый Кемерово', 'Kemerovo Main')
@@ -41,6 +45,19 @@ def make_flat_table(data):
     data = data.replace('Склад Новосибирск', 'Novosibirsk Main')
     data = data.replace('Склад Новосибирск Брак', 'Novosibirsk Defect')
     data = data.replace('Брак Кемерово', 'Kemerovo Defect')
+    data = data.replace('Выставочный Кемерово', 'Kemerovo Main')
+    data = data.replace('Выставочный Новосибирск', 'Novosibirsk Main')
+    data = data.replace('Склад Новосибирск Транзит', 'Novosibirsk Main')
+
+    data = data.replace('Выставочный Кемерово (АМС)', 'Kemerovo Main')
+    data = data.replace('Выставочный Новосибирск (АМС)', 'Novosibirsk Main')
+    data = data.replace('Оптовый Кемерово (АМС)', 'Kemerovo Main')
+    data = data.replace('Оптовый (АМС)', 'Kemerovo Main')
+    data = data.replace('Склад Новосибирск (АМС)', 'Novosibirsk Main')
+    data = data.replace('Склад Новосибирск Брак (АМС)', 'Novosibirsk Defect')
+    data = data.replace('Брак Кемерово (АМС)', 'Kemerovo Defect')
+    data = data.replace('Склад Новосибирск Транзит (АМС)', 'Novosibirsk Main')
+    
     data['quantity']   = data['quantity'].astype('Int32')
     data['cost']       = data['cost'].astype('float64')
     data['sale_value'] = data['sale_value'].astype('float64')
@@ -56,7 +73,12 @@ def make_flat_table_inv(data):
     skus = list(data.art.dropna().unique())
     data['store'] = ""
     data['SKU'] = ""
-    stores = ["Склад Новосибирск", "Оптовый Кемерово", "Оптовый", "Склад Новосибирск Транзит", "Склад Новосибирск Резерв" , "Склад транзит Кемерово-Новосибирск"]
+    stores = [
+        "Склад Новосибирск", "Оптовый Кемерово", "Склад Новосибирск Брак", "Брак Кемерово", 
+        "Оптовый", "Выставочный Кемерово", "Выставочный Новосибирск", "Склад Новосибирск Транзит",
+        "Склад Новосибирск (АМС)", "Оптовый Кемерово (АМС)", "Склад Новосибирск Брак (АМС)", "Брак Кемерово (АМС)", 
+        "Оптовый (АМС)", "Выставочный Кемерово (АМС)", "Выставочный Новосибирск (АМС)", "Склад Новосибирск Транзит (АМС)",
+        ]
 
     ##### Find the most recent date
     # column_with_dates = list(data.name.dropna().unique())
@@ -126,6 +148,13 @@ def make_flat_table_inv(data):
     df = df.replace('Склад Новосибирск Транзит', 'Novosibirsk Transit')
     df = df.replace('Склад Новосибирск Резерв', 'Novosibirsk Reserve')
     df = df.replace('Склад транзит Кемерово-Новосибирск', 'Kemerovo Transit')
+    df = df.replace('Оптовый Кемерово (АМС)', 'Kemerovo Main')
+    df = df.replace('Оптовый (АМС)', 'Kemerovo Main')
+    df = df.replace('Склад Новосибирск (АМС)', 'Novosibirsk Main')
+    df = df.replace('Склад Новосибирск Транзит (АМС)', 'Novosibirsk Transit')
+    df = df.replace('Склад Новосибирск Резерв (АМС)', 'Novosibirsk Reserve')
+    df = df.replace('Склад транзит Кемерово-Новосибирск (АМС)', 'Kemerovo Transit')
+
     df['end'] = df['end'].astype('Int32')  
     data.index = range(len(data.index)) # После удаления строк удаляются и индексы, поэтому сбивается нумерация, исправляем
     df = df.query('store != ""')

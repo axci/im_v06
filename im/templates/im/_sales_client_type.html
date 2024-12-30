@@ -1,0 +1,22 @@
+<section class="page-section"></section>
+    <div class="container">
+        <div class="text-center">
+            <h2 class="section-heading text-uppercase invisible">.</h2>
+            <h2 class="section-heading text-uppercase"><a href="">Продажи по типу контрагента</a></h2>
+        </div>
+        <div class="row text-center">                     
+            <div class="col-lg-12">
+                <div class="product-card">
+                <li class="nav-item btn btn-third"><a class="nav-link" href="{% url 'im:sales_client_rus' client_type='ГПН' %}">ГПН</a></li>
+                <li class="nav-item btn btn-third"><a class="nav-link" href="{% url 'im:sales_client_rus' client_type='гипермаркеты' %}">гипермаркеты</a></li>
+                <li class="nav-item btn btn-third"><a class="nav-link" href="{% url 'im:sales_client_rus' client_type='дилеры' %}">дилеры</a></li>
+                <li class="nav-item btn btn-third"><a class="nav-link" href="{% url 'im:sales_client_rus' client_type='автомеханика-НК' %}">автомеханика-НК</a></li>
+                <li class="nav-item btn btn-third"><a class="nav-link" href="{% url 'im:sales_client_rus' client_type='торговые представители' %}">торговые представители</a></li>
+                <li class="nav-item btn btn-third"><a class="nav-link" href="{% url 'im:sales_client_rus' client_type='интернет' %}">интернет</a></li>
+                <li class="nav-item btn btn-third"><a class="nav-link" href="{% url 'im:sales_client_rus' client_type='тендер' %}">тендер</a></li>
+                <li class="nav-item btn btn-third"><a class="nav-link" href="{% url 'im:sales_client_rus' client_type='прочие покупатели' %}">прочие покупатели</a></li>
+                </div>
+            </div>   
+        </div>         
+    </div>
+</section>

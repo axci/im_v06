@@ -64,36 +64,7 @@
             </table>
             <div class="text-center">
                 <h2 class="section-heading text-uppercase"></h2>
-                <h4 class="section-heading"></h2>  
-                <!-- <div class="row">
-                    <div class="col-md-4">
-                        <h5 class="text-center">Total Sales</h5>
-                        <h5 class="text-center">2024: {{ sales24_total|floatformat:"0g" }} kg</h5>
-                        <h5 class="text-center">2023: {{ sales23_total|floatformat:"0g" }} kg</h5>
-                        <h5 class="text-center" style="color: {% if dif_abs > 0 %}rgba(0, 107, 162, 1){% else %}rgba(219, 68, 75, 1){% endif %};">
-                            Dif: {{ dif_abs|floatformat:"0g" }} kg ({{ dif_perc|floatformat:1 }}%)
-                        </h5>
-                        <p class="text-muted invisible">Description</p>
-                    </div>
-                    <div class="col-md-4">
-                            <h5 class="text-center">Novosibirsk Sales</h5>
-                            <h5 class="text-center">2024: {{ sales_nsk24_total|floatformat:"0g" }} kg</h5>
-                            <h5 class="text-center">2023: {{ sales_nsk23_total|floatformat:"0g" }} kg</h5>
-                            <h5 class="text-center" style="color: {% if dif_abs_nsk > 0 %}rgba(0, 107, 162, 1){% else %}rgba(219, 68, 75, 1){% endif %};">
-                                Dif: {{ dif_abs_nsk|floatformat:"0g" }} kg ({{ dif_perc_nsk|floatformat:1 }}%)
-                            </h5>
-                            <p class="text-muted invisible">Description</p>
-                    </div>
-                    <div class="col-md-4">
-                            <h5 class="text-center">Kemerovo Sales</h5>
-                            <h5 class="text-center">2024: {{ sales_kem24_total|floatformat:"0g" }} </h5>
-                            <h5 class="text-center">2023: {{ sales_kem23_total|floatformat:"0g" }}</h5>
-                            <h5 class="text-center" style="color: {% if dif_abs_kem > 0 %}rgba(0, 107, 162, 1){% else %}rgba(219, 68, 75, 1){% endif %};">
-                                Dif: {{ dif_abs_kem|floatformat:"0g" }} kg ({{ dif_perc_kem|floatformat:1 }}%)
-                            </h5>
-                            <p class="text-muted invisible">Description</p>
-                    </div>
-                </div>           -->                      
+                <h4 class="section-heading"></h2>              
             </div>           
         </div>
     </section>
@@ -101,19 +72,29 @@
     <!-- SALES NSK & KEM -->
     <section class="page-section bg-light" id="portfolio">
         <div class="container">
-            <div class="row">                  
+            <div class="row text-center">                  
                  <!-- NSK CHART  -->
                 <div class="col-md-6">
                     <div class="portfolio-item">
                         <h5 class="text-center">Novosibirsk Sales</h5>
+                        <h7 class="text-center"></h7>
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#CumSales1">
+                                <button type="submit" name="upload_products" class="btn btn-primary">View Cum Sales</button>   
+                            </a>
+                        </h7>
                         <canvas id="salesNskChart"></canvas>
                         <p class="text-muted invisible">Description</p>
                     </div>
                 </div>
                 <!-- KEM CHART  -->
                 <div class="col-md-6">
-                    <div class="portfolio-item">
+                    <div class="portfolio-item text-center">
                         <h5 class="text-center">Kemerovo Sales</h5>
+                        <h7 class="text-center"></h7>
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#CumSales2">
+                                <button type="submit" name="upload_products" class="btn btn-primary">View Cum Sales</button>   
+                            </a>
+                        </h7>
                         <canvas id="salesKemChart"></canvas>
                         <p class="text-muted invisible">Description</p>
                     </div>
@@ -125,8 +106,13 @@
     <!-- TOTAL CHART -->
     <section class="page-section bg-white" id="portfolio">
         <div class="container">
-            <div class="row">
+            <div class="row text-center">
                 <h5 class="text-center">Total Sales</h5>
+                <h7 class="text-center"></h7>
+                    <a class="portfolio-link" data-bs-toggle="modal" href="#CumSales3">
+                        <button type="submit" name="upload_products" class="btn btn-primary">View Cum Sales</button>   
+                    </a>
+                </h7>
                 <canvas id="salesChart" height="300"></canvas>
                 <p class="text-muted invisible">Description</p>
             </div>
@@ -143,6 +129,33 @@
             </div>
         </div>
     </section> 
+
+    <!-- POP-UP -->
+    {% for i in li %}
+        <div class="portfolio-modal modal fade" id="CumSales{{i}}" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="close-modal" data-bs-dismiss="modal"><img src="{% static 'assets/img/close-icon.svg' %}" alt="Close modal" /></div>
+                    <div class="container">
+                        <div class="text-center">
+                            <p class="text-muted invisible">Description</p>
+                        </div>     
+                        <div class="row justify-content-center">
+                            <canvas id="salesCumChart{{i}}" height="100"></canvas>
+                        </div>
+                        <div class="row justify-content-center">
+                            <div class="col-md-2">
+                                <button class="btn btn-success btn-xl text-uppercase" data-bs-dismiss="modal" type="button">
+                                <i class="fas fa-xmark me-1"></i>
+                                    Закрыть
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
 
 
     <script>
@@ -385,7 +398,133 @@
             },
         });
 
+        // NOVOSIBIRSK CUMULATIVE SALES
+        const sales24nskcumData = {{ sales_nsk24_cum|safe }};
+        const sales23nskcumData = {{ sales_nsk23_cum|safe }};
+
+        const ctx5 = document.getElementById('salesCumChart1').getContext('2d');
+        new Chart(ctx5, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'NSK Sales 2024',
+                        data: sales24nskcumData,
+                        borderColor: 'rgba(0, 107, 162, 1)',
+                        backgroundColor: 'rgba(0, 107, 162, 1)',
+                        fill: false,
+                        tension: 0.1,
+                        borderWidth: 5,
+                    },
+                    {
+                        label: 'NSK Sales 2023',
+                        data: sales23nskcumData,
+                        borderColor: 'rgba(219, 68, 75, 1)',
+                        backgroundColor: 'rgba(219, 68, 75, 1)',
+                        fill: false,
+                        tension: 0.1,
+                        borderWidth: 3,
+                    },                    
+                ],
+            },
+            options: {
+                responsive: true,                
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                },
+            },
+        });
+
+        // KEMEROVO CUMULATIVE SALES
+        const sales24kemcumData = {{ sales_kem24_cum|safe }};
+        const sales23kemcumData = {{ sales_kem23_cum|safe }};
+
+        const ctx6 = document.getElementById('salesCumChart2').getContext('2d');
+        new Chart(ctx6, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Cum Sales 2024',
+                        data: sales24kemcumData,
+                        borderColor: 'rgba(0, 107, 162, 1)',
+                        backgroundColor: 'rgba(0, 107, 162, 1)',
+                        fill: false,
+                        tension: 0.1,
+                        borderWidth: 5,
+                    },
+                    {
+                        label: 'Cum Sales 2023',
+                        data: sales23kemcumData,
+                        borderColor: 'rgba(219, 68, 75, 1)',
+                        backgroundColor: 'rgba(219, 68, 75, 1)',
+                        fill: false,
+                        tension: 0.1,
+                        borderWidth: 3,
+                    },                    
+                ],
+            },
+            options: {
+                responsive: true,                
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                },
+            },
+        });
+        
+        // TOTAL CUMULATIVE SALES
+        const sales24cumData = {{ sales24_cum|safe }};
+        const sales23cumData = {{ sales23_cum|safe }};
+
+        const ctx7 = document.getElementById('salesCumChart3').getContext('2d');
+        new Chart(ctx7, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Cum Sales 2024',
+                        data: sales24cumData,
+                        borderColor: 'rgba(0, 107, 162, 1)',
+                        backgroundColor: 'rgba(0, 107, 162, 1)',
+                        fill: false,
+                        tension: 0.1,
+                        borderWidth: 5,
+                    },
+                    {
+                        label: 'Cum Sales 2023',
+                        data: sales23cumData,
+                        borderColor: 'rgba(219, 68, 75, 1)',
+                        backgroundColor: 'rgba(219, 68, 75, 1)',
+                        fill: false,
+                        tension: 0.1,
+                        borderWidth: 3,
+                    },                    
+                ],
+            },
+            options: {
+                responsive: true,                
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                },
+            },
+        });
+
 
     </script>
+
+    <!-- Bootstrap core JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core theme JS-->
+    <script src="{% static 'js/scripts.js' %} "></script>
+    <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
 </body>
 </html>
